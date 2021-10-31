@@ -29,7 +29,7 @@ def buscarDNIenWEB(nombres, ape_p, ape_m):
     s = Service("C:\\Users\\alex5\\Downloads\\chromedriver.exe")
     driver = webdriver.Chrome(service=s)
     driver.get("https://eldni.com/pe/buscar-por-nombres")
-    driver.find_element(By.ID,'nombres').send_keys(nombres)
+    driver.find_element_by_id("nombres").send_keys(nombres)
     driver.find_element_by_id("apellido_p").send_keys(ape_p)
     driver.find_element_by_id("apellido_m").send_keys(ape_m)
     driver.find_element_by_css_selector("button[type='submit']").click()
