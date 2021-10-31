@@ -54,8 +54,8 @@ for nombres, apellidos_P, apellidos_M, docIden in combo:
         hoja.cell(row=fila,column=10).value = dni
         archivo.save(ruta_excel)
     fila = fila + 1
-    
-    
+
+#####
 
 
 
