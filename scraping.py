@@ -16,7 +16,7 @@ print("Iniciando scraper")
 ruta_excel = "C:\\Users\\alex5\\Downloads\\PADRON DE ESTUDIANTES 2021.xlsx"
 nombre_hoja = "Padron Estudiantes 2021"
 dfDatos = pd.read_excel(io=ruta_excel,sheet_name=nombre_hoja)
-lista = dfDatos.to_dict('lista')
+lista = dfDatos.to_dict('list')
 
 nombres = lista['Nombres'] 
 apellidos_P = lista['Apellido Paterno']
@@ -48,7 +48,7 @@ for nombres, apellidos_P, apellidos_M, docIden in combo:
     print("Fila " + str(fila) + " " + str(docIden))
     if (pd.isna(docIden)):
         dni = buscarDNIenWEB(nombres,apellidos_P,apellidos_M)
-        print (print(dni +"\t"+ nombres," ",apellidos_P," ",apellidos_M))
+        print(str(dni) +"\t"+ nombres," ",apellidos_P," ",apellidos_M)
         archivo = openpyxl.load_workbook(ruta_excel)
         hoja = archivo.get_sheet_by_name(nombre_hoja)
         hoja.cell(row=fila,column=10).value = dni
