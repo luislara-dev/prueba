@@ -18,6 +18,13 @@ from oauth2client.service_account import ServiceAccountCredentials
 ruta_excel = "C:\\Users\\alex5\\Downloads\\PADRON DE ESTUDIANTES 2021.xlsx"
 nombre_hoja = "Padron Estudiantes 2021"
 
+### GOOGLE API
+scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('C:\\Users\\alex5\\Downloads\\proyectopruebas-330717-919f78f2d4b3.json', scope)
+client = gspread.authorize(creds)
+sheet = client.open('PADRON DE ESTUDIANTES 2021  - UNFV PSICOLOGIA')
+###
+
 def SepararNombres( nombre ):
     """
     Autor original en código PHP: eduardoromero.
@@ -106,7 +113,7 @@ def actualizarSheet(fila,dni):
     client = gspread.authorize(creds)
     sheet = client.open('PADRON DE ESTUDIANTES 2021  - UNFV PSICOLOGIA')
     sheet_instance = sheet.get_worksheet(0)
-    sheet_instance.update_cell(fila, 5, dni)
+    sheet_instance.update_cell(fila, 4, dni)
 
 def buscarDNIenWEB(nombres, ape_p, ape_m):
     s = Service("C:\\Users\\alex5\\Downloads\\chromedriver.exe")
@@ -121,7 +128,7 @@ def buscarDNIenWEB(nombres, ape_p, ape_m):
     driver.find_element_by_id("apellido_p").send_keys(ape_p)
     driver.find_element_by_id("apellido_m").send_keys(ape_m)
     driver.find_element_by_css_selector("button[type='submit']").click()
-    time.sleep(0.5)
+    time.sleep(0.1)
     soup = BeautifulSoup(driver.page_source,'lxml')
     try :
         thDNI = soup.find_all('th')[4]
@@ -157,42 +164,47 @@ def cargarDatosDesdeExcel():
                 nombres = nombrescompleto[2]
                 dni = buscarDNIenWEB(nombres,ap,am)
                 if (dni == ""):
-                    print("ID " + str(id) + " " + str(docIden) +"\t"+ nombres," ",ap," ",am + " [No se encontro DNI]")
+                    print("Fila: "+ str(fila) + "\tID " + str(id) + "\t" + str(docIden) +" --> [No se encontro DNI] " + ap + " " + am + " " + nombres)
+                    contDniVacios -= 1
                 else :
-                    print("ID " + str(id) + " " + str(docIden) +"\t"+ nombres," ",ap," ",am + " --SE ENCONTRÓ dni --" +  dni)
-                    print("Faltan buscar " + str(contDniVacios) + " registros" )
+                    print("Fila: "+ str(fila) + "\tID " + str(id) + "\t" + str(docIden) +" --> [SE ENCONTRÓ] " + dni + " " + ap + " " + am + " " + nombres +
+                          " --- Faltan buscar " + str(contDniVacios) + " registros")
                     #actualizarExcel(fila,dni)
-                    #actualizarSheet(fila,dni)
+                    actualizarSheet(fila,dni)
                     contDniVacios -= 1
         fila = fila + 1
     
 def cargarDatosDesdeSheet():
-    scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name('C:\\Users\\alex5\\Downloads\\proyectopruebas-330717-919f78f2d4b3.json', scope)
-    client = gspread.authorize(creds)
-    sheet = client.open('PADRON DE ESTUDIANTES 2021  - UNFV PSICOLOGIA')
     id = sheet.get_worksheet(0).col_values(1)
     nombresyapellidos = sheet.get_worksheet(0).col_values(3)
     docIden = sheet.get_worksheet(0).col_values(4)
     combo = zip(id,nombresyapellidos, docIden) 
     contDniVacios = docIden.count("")
+    
+    fila = 1
     for id, nombresyapellidos, docIden in combo:
-        if id == "ID":
-            continue
-        if docIden == "" :
-            nombrescompleto = SepararNombres(nombresyapellidos)
-            ap = nombrescompleto[0]
-            am = nombrescompleto[1]
-            nombres = nombrescompleto[2]
-            print("ID " + str(id) + " " + str(docIden) + " [" + ap + "] [" + am + "] [" + nombres + "]")
-            print("faltan :"+ str(contDniVacios))
-            dni = buscarDNIenWEB(nombres,ap,am)
-            actualizarSheet(int(id)+1,dni)
-            contDniVacios -= 1
+        if (fila >= 2 ):
+            if docIden == "" :
+                nombrescompleto = SepararNombres(nombresyapellidos)
+                ap = nombrescompleto[0]
+                am = nombrescompleto[1]
+                nombres = nombrescompleto[2]
+                dni = buscarDNIenWEB(nombres,ap,am)
+                if (dni == ""):
+                    print("Fila: "+ str(fila) + "\tID " + str(id) + "\t" + str(docIden) +" --> [No se encontro DNI] " + ap + " " + am + " " + nombres +
+                          " --- Faltan buscar " + str(contDniVacios) + " registros")
+                    contDniVacios -= 1
+                else :
+                    print("Fila: "+ str(fila) + "\tID " + str(id) + "\t" + str(docIden) +" --> [SE ENCONTRÓ] " + dni + " " + ap + " " + am + " " + nombres +
+                          " --- Faltan buscar " + str(contDniVacios) + " registros")
+                    #actualizarExcel(fila,dni)
+                    actualizarSheet(fila,dni)
+                    contDniVacios -= 1
+        fila = fila + 1
     
 print("Iniciando scraper")
-#cargarDatosDesdeSheet()
-cargarDatosDesdeExcel()
+cargarDatosDesdeSheet()
+#cargarDatosDesdeExcel()
 
 
 
